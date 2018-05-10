@@ -37,7 +37,7 @@ namespace TextTranslateEchoBot
                 if (activity.Text != null)
                 {
                     //detect incoming langugage
-                    var msgLanguage = await LanguageUtilities.DetectInputLanguageAsync(activity.Text);
+                    var msgLanguage = await LanguageUtilities.DetectInputLanguageAsync<LanguageDetectResult>(activity.Text);
                     outputLanguage = msgLanguage.Result[0].language;
 
                     var key = Address.FromActivity(activity);
@@ -64,7 +64,7 @@ namespace TextTranslateEchoBot
 
                     //we're assumign English is the bot language. So we will translate incoming non-english to english for processing
                     //if (!msgLanguage.Equals("en"))
-                    var translatedObj = await LanguageUtilities.TranslateTextAsync(activity.Text, "en");
+                    var translatedObj = await LanguageUtilities.TranslateTextAsync<AltLanguageTranslateResult>(activity.Text, "en");
                     activity.Text = translatedObj.Result[0].translations[0].text;
 
                 }

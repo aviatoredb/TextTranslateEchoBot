@@ -26,10 +26,11 @@ namespace TextTranslateEchoBot.Dialogs
             // calculate something for us to return
             int length = (activity.Text ?? string.Empty).Length;
 
-            var translatedtext = await LanguageUtilities.TranslateTextAsync($"You sent {activity.Text} which was {length} characters", lang);
+            var translatedtext = await LanguageUtilities.TranslateTextAsync<AltLanguageTranslateResult>($"You sent {activity.Text} which was {length} characters", lang);
+            var englishText = await LanguageUtilities.TranslateTextAsync<AltLanguageTranslateResult>($"You sent {activity.Text} which was {length} characters", "en");
 
             // return our reply to the user
-            await context.PostAsync(translatedtext.Result[0].translations[0].text);
+            await context.PostAsync(translatedtext.Result[0].translations[0].text +"\n\n" + englishText.Result[0].translations[0].text);
 
             context.Wait(MessageReceivedAsync);
         }

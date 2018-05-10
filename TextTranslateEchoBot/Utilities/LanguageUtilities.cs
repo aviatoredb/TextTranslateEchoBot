@@ -14,16 +14,16 @@ namespace TextTranslateEchoBot.Utilities
     public static class LanguageUtilities
     {
 
-        public static async Task<LanguageAPIResult<AltLanguageDetectResult>> DetectInputLanguageAsync(string inputText)
+        public static async Task<LanguageAPIResult<T>> DetectInputLanguageAsync<T>(string inputText)
         {
             var path = $"detect?api-version=3.0";
-            return await ExecuteAPI<AltLanguageDetectResult>(path, inputText);
+            return await ExecuteAPI<T>(path, inputText);
         }
 
-        public static async Task<LanguageAPIResult<AltLanguageTranslateResult>> TranslateTextAsync(string inputText, string outputLanguage)
+        public static async Task<LanguageAPIResult<T>> TranslateTextAsync<T>(string inputText, string outputLanguage)
         {
             var path = $"translate?api-version=3.0&to={outputLanguage}";
-            return await ExecuteAPI<AltLanguageTranslateResult>(path, inputText);
+            return await ExecuteAPI<T>(path, inputText);
         }
 
         private static async Task<LanguageAPIResult<T>> ExecuteAPI<T>(string apiPath, string bodyText)
