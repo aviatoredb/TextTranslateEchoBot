@@ -14,22 +14,32 @@ namespace TextTranslateEchoBot.Utilities
     public static class LanguageUtilities
     {
 
-        public static async Task<LanguageAPIResult<T>> DetectInputLanguageAsync<T>(string inputText)
+        public static async Task<T> SupportedLanguages<T>()
+        {
+            var path = $"languages?api-version=3.0&scope=translation";
+            return await ExecuteAPI<T>(path, String.Empty);
+        }
+
+        public static async Task<T> DetectInputLanguageAsync<T>(string inputText)
         {
             var path = $"detect?api-version=3.0";
             return await ExecuteAPI<T>(path, inputText);
         }
 
-        public static async Task<LanguageAPIResult<T>> TranslateTextAsync<T>(string inputText, string outputLanguage)
+        public static async Task<T> TranslateTextAsync<T>(string inputText, string outputLanguage)
         {
-            var path = $"translate?api-version=3.0&to={outputLanguage}";
+            var path = $"translate?api-version=3.0&to={outputLanguage}&includeSentenceLength=true";
             return await ExecuteAPI<T>(path, inputText);
         }
-
-        private static async Task<LanguageAPIResult<T>> ExecuteAPI<T>(string apiPath, string bodyText)
+    
+        private static async Task<T> ExecuteAPI<T>(string apiPath, string bodyText)
         {
-            System.Object[] body = new System.Object[] { new { Text = bodyText } };
-            var requestBody = JsonConvert.SerializeObject(body);
+            string requestBody = String.Empty;
+            if (!String.IsNullOrEmpty(bodyText))
+            {
+                System.Object[] body = new System.Object[] { new { Text = bodyText } };
+                requestBody = JsonConvert.SerializeObject(body);
+            }
 
             string apiKey = ConfigurationManager.AppSettings["trns:APIKey"];
             string url = ConfigurationManager.AppSettings["trns:APIEndpoint"];
@@ -38,9 +48,9 @@ namespace TextTranslateEchoBot.Utilities
             using (var client = new HttpClient())
             using (var request = new HttpRequestMessage())
             {
-                request.Method = HttpMethod.Post;
+                request.Method = !String.IsNullOrEmpty(requestBody) ? HttpMethod.Post : HttpMethod.Get;
                 request.RequestUri = uri;
-                request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+                request.Content = !String.IsNullOrEmpty(requestBody) ? new StringContent(requestBody, Encoding.UTF8, "application/json") : null;
                 request.Headers.Add("Ocp-Apim-Subscription-Key", apiKey);
 
                 var response = await client.SendAsync(request);
@@ -48,21 +58,12 @@ namespace TextTranslateEchoBot.Utilities
 
                 var setting = new JsonSerializerSettings();
                 setting.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;
-                var result = JsonConvert.DeserializeObject<List<T>>(responseBody);
 
-                return new LanguageAPIResult<T>(result);
+                var result = JsonConvert.DeserializeObject<T>(responseBody);
+
+                return result;
             }
         }
-    }
-
-    public class LanguageAPIResult<T>
-    {
-        public LanguageAPIResult(List<T> t)
-        {
-            Result = t;
-        }
-
-        public List<T> Result { get; set; }
     }
 
     public class AltLanguageTranslateResult
@@ -75,7 +76,15 @@ namespace TextTranslateEchoBot.Utilities
     {
         public string text { get; set; }
         public string to { get; set; }
+        public LanguageTrnaslationSentenceLen sentLen { get; set; }
     }
+
+    public class LanguageTrnaslationSentenceLen
+    {
+        public List<int> srcSentLen { get; set; }
+        public List<int> transSentLen { get; set; }
+    }
+
 
     public class AltLanguageDetectResult
     {
@@ -93,5 +102,4 @@ namespace TextTranslateEchoBot.Utilities
         public bool isTransliterationSupported { get; set; }
         public List<AltLanguageDetectResult> alternatives { get; set; }
     }
-
 }

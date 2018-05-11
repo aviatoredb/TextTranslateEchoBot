@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using Newtonsoft.Json.Linq;
 using TextTranslateEchoBot.Utilities;
 
 namespace TextTranslateEchoBot.Dialogs
@@ -23,14 +25,23 @@ namespace TextTranslateEchoBot.Dialogs
 
             context.PrivateConversationData.TryGetValue<string>("ISOLanguageCode", out string lang);
 
-            // calculate something for us to return
-            int length = (activity.Text ?? string.Empty).Length;
+            var languages = await LanguageUtilities.SupportedLanguages<JObject>();
 
-            var translatedtext = await LanguageUtilities.TranslateTextAsync<AltLanguageTranslateResult>($"You sent {activity.Text} which was {length} characters", lang);
-            var englishText = await LanguageUtilities.TranslateTextAsync<AltLanguageTranslateResult>($"You sent {activity.Text} which was {length} characters", "en");
+            if (lang.Equals("en") && !String.IsNullOrEmpty(activity.Text))
+            {
+                await context.PostAsync($"You sent '{activity.Text}' which is {activity.Text.Length} characters");
+            }
+            else {
+                var translatedtext = await LanguageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>($"You sent '{activity.Text}', which was written in {languages["translation"][lang]["nativeName"].ToString()}", lang);
 
-            // return our reply to the user
-            await context.PostAsync(translatedtext.Result[0].translations[0].text +"\n\n" + englishText.Result[0].translations[0].text);
+                var englishText = await LanguageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>($"You sent '{activity.Text}', which was originally written in {languages["translation"][lang]["name"].ToString()}", "en");
+
+                var transString = $"{translatedtext[0].translations[0].text}";
+                var engString = $"{englishText[0].translations[0].text}";
+
+                // return our reply to the user
+                await context.PostAsync($"{transString}\n\n{engString}");
+            }
 
             context.Wait(MessageReceivedAsync);
         }

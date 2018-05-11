@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -37,36 +38,29 @@ namespace TextTranslateEchoBot
                 if (activity.Text != null)
                 {
                     //detect incoming langugage
-                    var msgLanguage = await LanguageUtilities.DetectInputLanguageAsync<LanguageDetectResult>(activity.Text);
-                    outputLanguage = msgLanguage.Result[0].language;
+                    var msgLanguage = await LanguageUtilities.DetectInputLanguageAsync<List<AltLanguageDetectResult>>(activity.Text);
+                    outputLanguage = msgLanguage[0].language;
 
                     var key = Address.FromActivity(activity);
 
-                    try
-                    {
-                        var userData = await _botDataStore.LoadAsync(key, BotStoreType.BotPrivateConversationData, CancellationToken.None);
+                    var userData = await _botDataStore.LoadAsync(key, BotStoreType.BotPrivateConversationData, CancellationToken.None);
 
-                        var storedLangugageCode = userData.GetProperty<string>("ISOLanguageCode");
-                        storedLangugageCode = storedLangugageCode ?? "en";
+                    var storedLangugageCode = userData.GetProperty<string>("ISOLanguageCode");
+                    storedLangugageCode = storedLangugageCode ?? "en";
 
-                        if (!storedLangugageCode.Equals(outputLanguage))
-                        {
-                            //save new code
-                            userData.SetProperty("ISOLanguageCode", outputLanguage);
-                            await _botDataStore.SaveAsync(key, BotStoreType.BotPrivateConversationData, userData, CancellationToken.None);
-                            await _botDataStore.FlushAsync(key, CancellationToken.None);
-                        }
-                    }
-                    catch (Exception ex)
+                    if (!storedLangugageCode.Equals(outputLanguage))
                     {
-                        //yes, need proper exception handling here
+                        //save new code
+                        userData.SetProperty("ISOLanguageCode", outputLanguage);
+                        await _botDataStore.SaveAsync(key, BotStoreType.BotPrivateConversationData, userData, CancellationToken.None);
+                        await _botDataStore.FlushAsync(key, CancellationToken.None);
                     }
 
-                    //we're assumign English is the bot language. So we will translate incoming non-english to english for processing
-                    //if (!msgLanguage.Equals("en"))
-                    var translatedObj = await LanguageUtilities.TranslateTextAsync<AltLanguageTranslateResult>(activity.Text, "en");
-                    activity.Text = translatedObj.Result[0].translations[0].text;
-
+                    List<AltLanguageTranslateResult> translatedObj = null;
+                    //we're assuming English is the bot language. So we will translate incoming non-english to english for processing
+                    if (!msgLanguage.Equals("en"))
+                        translatedObj = await LanguageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>(activity.Text, "en");
+                    activity.Text = translatedObj[0].translations[0].text;
                 }
 
                 using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, message))
