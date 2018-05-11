@@ -11,28 +11,28 @@ using System.Web;
 
 namespace TextTranslateEchoBot.Utilities
 {
-    public static class LanguageUtilities
+    [Serializable]
+    public  class LanguageUtilities : ILanguageUtilities
     {
-
-        public static async Task<T> SupportedLanguages<T>()
+        public  async Task<T> SupportedLanguages<T>()
         {
             var path = $"languages?api-version=3.0&scope=translation";
             return await ExecuteAPI<T>(path, String.Empty);
         }
 
-        public static async Task<T> DetectInputLanguageAsync<T>(string inputText)
+        public  async Task<T> DetectInputLanguageAsync<T>(string inputText)
         {
             var path = $"detect?api-version=3.0";
             return await ExecuteAPI<T>(path, inputText);
         }
 
-        public static async Task<T> TranslateTextAsync<T>(string inputText, string outputLanguage)
+        public  async Task<T> TranslateTextAsync<T>(string inputText, string outputLanguage)
         {
             var path = $"translate?api-version=3.0&to={outputLanguage}&includeSentenceLength=true";
             return await ExecuteAPI<T>(path, inputText);
         }
     
-        private static async Task<T> ExecuteAPI<T>(string apiPath, string bodyText)
+        private  async Task<T> ExecuteAPI<T>(string apiPath, string bodyText)
         {
             string requestBody = String.Empty;
             if (!String.IsNullOrEmpty(bodyText))

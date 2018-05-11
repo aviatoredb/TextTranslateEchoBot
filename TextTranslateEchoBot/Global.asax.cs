@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
 using TextTranslateEchoBot.Dialogs;
+using TextTranslateEchoBot.Utilities;
 
 namespace TextTranslateEchoBot
 {
@@ -37,7 +38,12 @@ namespace TextTranslateEchoBot
                                       .AsSelf()
                                       .InstancePerLifetimeScope();
 
-                           builder.Register(c => new RootDialog())
+                           builder.RegisterType<LanguageUtilities>()
+                                    .As<ILanguageUtilities>()
+                                    .AsImplementedInterfaces()
+                                    .SingleInstance();
+
+                           builder.Register(c => new RootDialog(c.Resolve<ILanguageUtilities>()))
                                     .As<RootDialog>()
                                     .InstancePerDependency();
 

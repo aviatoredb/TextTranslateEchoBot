@@ -18,9 +18,12 @@ namespace TextTranslateEchoBot
     public class MessagesController : ApiController
     {
         private IBotDataStore<BotData> _botDataStore;
-        public MessagesController(IBotDataStore<BotData> botDataStore)
+        private ILanguageUtilities _languageUtilities;
+
+        public MessagesController(ILanguageUtilities languageUtilities, IBotDataStore<BotData> botDataStore)
         {
             _botDataStore = botDataStore;
+            _languageUtilities = languageUtilities;
         }
 
         /// <summary>
@@ -38,7 +41,7 @@ namespace TextTranslateEchoBot
                 if (activity.Text != null)
                 {
                     //detect incoming langugage
-                    var msgLanguage = await LanguageUtilities.DetectInputLanguageAsync<List<AltLanguageDetectResult>>(activity.Text);
+                    var msgLanguage = await _languageUtilities.DetectInputLanguageAsync<List<AltLanguageDetectResult>>(activity.Text);
                     outputLanguage = msgLanguage[0].language;
 
                     var key = Address.FromActivity(activity);
@@ -59,7 +62,7 @@ namespace TextTranslateEchoBot
                     List<AltLanguageTranslateResult> translatedObj = null;
                     //we're assuming English is the bot language. So we will translate incoming non-english to english for processing
                     if (!msgLanguage.Equals("en"))
-                        translatedObj = await LanguageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>(activity.Text, "en");
+                        translatedObj = await _languageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>(activity.Text, "en");
                     activity.Text = translatedObj[0].translations[0].text;
                 }
 
