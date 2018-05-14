@@ -14,7 +14,11 @@ namespace TextTranslateEchoBot.Utilities
     [Serializable]
     public  class LanguageUtilities : ILanguageUtilities
     {
-        public  async Task<T> SupportedLanguages<T>()
+        private const string _defaultLanguage = "en";
+
+        public string DefaultLanguage { get { return _defaultLanguage; } }
+
+        public async Task<T> SupportedLanguagesAsync<T>()
         {
             var path = $"languages?api-version=3.0&scope=translation";
             return await ExecuteAPI<T>(path, String.Empty);
@@ -32,7 +36,7 @@ namespace TextTranslateEchoBot.Utilities
             return await ExecuteAPI<T>(path, inputText);
         }
     
-        private  async Task<T> ExecuteAPI<T>(string apiPath, string bodyText)
+        private async Task<T> ExecuteAPI<T>(string apiPath, string bodyText)
         {
             string requestBody = String.Empty;
             if (!String.IsNullOrEmpty(bodyText))
@@ -65,6 +69,7 @@ namespace TextTranslateEchoBot.Utilities
             }
         }
     }
+
 
     public class AltLanguageTranslateResult
     {

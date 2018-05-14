@@ -1,0 +1,42 @@
+﻿using Autofac;
+using Microsoft.Bot.Builder.Azure;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Dialogs.Internals;
+using Microsoft.Bot.Builder.Internals.Fibers;
+using Microsoft.Bot.Builder.Luis;
+using Microsoft.Bot.Builder.Scorables;
+using Microsoft.Bot.Connector;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Web;
+using TextTranslateEchoBot.Dialogs;
+using TextTranslateEchoBot.Utilities;
+
+namespace TextTranslateEchoBot
+{
+    public sealed class MainModule : Module
+    {
+        protected override void Load(ContainerBuilder builder)
+        {
+            base.Load(builder);
+
+            builder.Register(c => new RootDialog(c.Resolve<ILanguageUtilities>()))
+                     .As<RootDialog>()
+                     .InstancePerDependency();
+           
+            builder.RegisterType<LanguageUtilities>()
+                     .As<ILanguageUtilities>()
+                     .AsImplementedInterfaces()
+                     .SingleInstance();
+
+            // replace the type ChannelSpecificMapper here with your class that implements IMessageActivityMapper
+            builder.Register(c => new TranslatorMessageActivityMapper(c.Resolve<ILanguageUtilities>(), c.Resolve<IBotDataStore<BotData>>()))
+                     .As<IMessageActivityMapper>()
+                     .InstancePerLifetimeScope();
+
+         
+        }
+    }
+}

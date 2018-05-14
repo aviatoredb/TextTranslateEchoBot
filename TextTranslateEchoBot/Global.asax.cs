@@ -3,9 +3,12 @@ using Autofac.Integration.WebApi;
 using Microsoft.Bot.Builder.Azure;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Internals;
+using Microsoft.Bot.Builder.Internals.Fibers;
+using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Connector;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Web;
@@ -26,10 +29,14 @@ namespace TextTranslateEchoBot
             Conversation.UpdateContainer(
                        builder =>
                        {
+                           builder.RegisterModule(new AzureModule(Assembly.GetExecutingAssembly()));
+
+                           builder.RegisterModule<MainModule>();
+
                            builder.Register(c => store)
-                                     .Keyed<IBotDataStore<BotData>>(AzureModule.Key_DataStore)
-                                     .AsSelf()
-                                     .SingleInstance();
+                                             .Keyed<IBotDataStore<BotData>>(AzureModule.Key_DataStore)
+                                             .AsSelf()
+                                             .SingleInstance();
 
                            builder.Register(c => new CachingBotDataStore(store,
                                       CachingBotDataStoreConsistencyPolicy
@@ -37,15 +44,6 @@ namespace TextTranslateEchoBot
                                       .As<IBotDataStore<BotData>>()
                                       .AsSelf()
                                       .InstancePerLifetimeScope();
-
-                           builder.RegisterType<LanguageUtilities>()
-                                    .As<ILanguageUtilities>()
-                                    .AsImplementedInterfaces()
-                                    .SingleInstance();
-
-                           builder.Register(c => new RootDialog(c.Resolve<ILanguageUtilities>()))
-                                    .As<RootDialog>()
-                                    .InstancePerDependency();
 
                            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
                            builder.RegisterWebApiFilterProvider(config);

@@ -30,23 +30,11 @@ namespace TextTranslateEchoBot.Dialogs
 
             context.PrivateConversationData.TryGetValue<string>("ISOLanguageCode", out string lang);
 
-            var languages = await _languageUtilities.SupportedLanguages<JObject>();
+            var languages = await _languageUtilities.SupportedLanguagesAsync<JObject>();
 
-            if (lang.Equals("en") && !String.IsNullOrEmpty(activity.Text))
-            {
-                await context.PostAsync($"You sent '{activity.Text}' which is {activity.Text.Length} characters");
-            }
-            else {
-                var translatedtext = await _languageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>($"You sent '{activity.Text}', which was written in {languages["translation"][lang]["nativeName"].ToString()}", lang);
-
-                var englishText = await _languageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>($"You sent '{activity.Text}', which was originally written in {languages["translation"][lang]["name"].ToString()}", "en");
-
-                var transString = $"{translatedtext[0].translations[0].text}";
-                var engString = $"{englishText[0].translations[0].text}";
-
-                // return our reply to the user
-                await context.PostAsync($"{transString}\n\n{engString}");
-            }
+            var englishText = $"You sent '{activity.Text}', which was originally written in {languages["translation"][lang]["name"].ToString()}";
+                
+            await context.PostAsync(englishText);            
 
             context.Wait(MessageReceivedAsync);
         }

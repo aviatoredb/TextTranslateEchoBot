@@ -49,7 +49,7 @@ namespace TextTranslateEchoBot
                     var userData = await _botDataStore.LoadAsync(key, BotStoreType.BotPrivateConversationData, CancellationToken.None);
 
                     var storedLangugageCode = userData.GetProperty<string>("ISOLanguageCode");
-                    storedLangugageCode = storedLangugageCode ?? "en";
+                    storedLangugageCode = storedLangugageCode ?? _languageUtilities.DefaultLanguage;
 
                     if (!storedLangugageCode.Equals(outputLanguage))
                     {
@@ -61,8 +61,8 @@ namespace TextTranslateEchoBot
 
                     List<AltLanguageTranslateResult> translatedObj = null;
                     //we're assuming English is the bot language. So we will translate incoming non-english to english for processing
-                    if (!msgLanguage.Equals("en"))
-                        translatedObj = await _languageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>(activity.Text, "en");
+                    if (!msgLanguage.Equals(_languageUtilities.DefaultLanguage))
+                        translatedObj = await _languageUtilities.TranslateTextAsync<List<AltLanguageTranslateResult>>(activity.Text, _languageUtilities.DefaultLanguage);
                     activity.Text = translatedObj[0].translations[0].text;
                 }
 
