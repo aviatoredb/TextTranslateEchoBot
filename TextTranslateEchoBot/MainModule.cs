@@ -22,6 +22,31 @@ namespace TextTranslateEchoBot
         {
             base.Load(builder);
 
+            #region Register LUIS Dialog plus attributed, etc
+
+            var luisModalAttr = new LuisModelAttribute(ConfigurationManager.AppSettings["luis:ModelId"],
+                                                            ConfigurationManager.AppSettings["luis:SubscriptionId"],
+                                                            LuisApiVersion.V2,
+                                                            ConfigurationManager.AppSettings["luis:Domain"]
+                                                            )
+            {
+                BingSpellCheckSubscriptionKey = ConfigurationManager.AppSettings["luis:BingSpellCheckSubScriptionId"],
+                SpellCheck = true
+            };
+
+            builder.Register(c => luisModalAttr).AsSelf().AsImplementedInterfaces().SingleInstance();
+
+            builder.Register(c => new MyLuisDialog(c.Resolve<ILuisService>(), c.Resolve<ILanguageUtilities>()))
+                .As<MyLuisDialog>()
+                .InstancePerDependency();
+
+            builder.RegisterType<LuisService>()
+                .Keyed<ILuisService>(FiberModule.Key_DoNotSerialize)
+                .AsImplementedInterfaces()
+                .SingleInstance();
+
+            #endregion
+
             builder.Register(c => new RootDialog(c.Resolve<ILanguageUtilities>()))
                      .As<RootDialog>()
                      .InstancePerDependency();

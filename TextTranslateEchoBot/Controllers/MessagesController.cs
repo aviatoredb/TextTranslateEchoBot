@@ -68,7 +68,8 @@ namespace TextTranslateEchoBot
 
                 using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, message))
                 {
-                    await Conversation.SendAsync(activity, () => scope.Resolve<RootDialog>());
+                    await Conversation.SendAsync(activity, () => scope.Resolve<MyLuisDialog>());
+                    //await Conversation.SendAsync(activity, () => scope.Resolve<RootDialog>());
                 }
             }
             else
